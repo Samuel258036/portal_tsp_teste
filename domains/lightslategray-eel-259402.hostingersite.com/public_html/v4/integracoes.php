@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 require_once __DIR__ . '/auth.php';
 require_admin();
@@ -10,8 +11,12 @@ $result = null;
 $preview = [];
 $limit = 10;
 
-function juridiq_escape(string $s): string { return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
-function juridiq_request(string $apiKey, int $limit): array {
+function juridiq_escape(string $s): string
+{
+    return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+function juridiq_request(string $apiKey, int $limit): array
+{
     $url = 'https://api.juridiq.com.br/person/?' . http_build_query(['page' => 1, 'limit' => $limit]);
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -35,16 +40,17 @@ function juridiq_request(string $apiKey, int $limit): array {
     if (!is_array($data)) throw new RuntimeException('Resposta inesperada do Juridiq.');
     return $data;
 }
-function loadEnv(string $filePath): array {
+function loadEnv(string $filePath): array
+{
     if (!is_file($filePath)) return [];
-    
+
     $env = [];
     $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    
+
     foreach ($lines as $line) {
         $line = trim($line);
         if ($line === '' || str_starts_with($line, '#')) continue;
-        
+
         if (str_contains($line, '=')) {
             [$key, $value] = explode('=', $line, 2);
             $env[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
@@ -53,15 +59,17 @@ function loadEnv(string $filePath): array {
     return $env;
 }
 
-function juridiq_key(): string {
+function juridiq_key(): string
+{
     $envPath = __DIR__ . '/../../.env'; // Ajuste para .env no ambiente final
-    
+
     $config = loadEnv($envPath);
-    
+
     return trim((string)($config['JURIDIQ_API_KEY'] ?? ''));
 }
 
-function juridiq_people(string $key, int $limit): array {
+function juridiq_people(string $key, int $limit): array
+{
     $response = juridiq_request($key, $limit);
     $items = $response['data'] ?? null;
     if (!is_array($items) || !array_is_list($items)) throw new RuntimeException('Lista de pessoas inválida.');
@@ -138,31 +146,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 portal_header('Integrações', 'integracoes');
 ?>
-<section class="panel"><span>PORTAL TSP</span><h2>Integrações</h2><p>Conecte sistemas externos ao portal de forma segura.</p></section>
+<section class="panel"><span>PORTAL TSP</span>
+    <h2>Integrações</h2>
+    <p>Conecte sistemas externos ao portal de forma segura.</p>
+</section>
 <section class="panel" style="margin-top:20px">
-  <h2>Juridiq</h2>
-  <p>Consulte pessoas e importe individualmente, após conferir os dados. Nenhuma movimentação ou processo será importado nesta etapa.</p>
-  <?php if ($result): ?>
-    <p role="status" style="padding:12px;border-radius:8px;background:<?= $result['ok'] ? '#e8f5ec' : '#fff0ed' ?>;color:#192b36"><?= juridiq_escape($result['message']) ?></p>
-  <?php endif; ?>
-  <form method="post" style="display:flex;gap:12px;flex-wrap:wrap">
-    <input type="hidden" name="csrf" value="<?= juridiq_escape($csrf) ?>">
-    <button type="submit" name="action" value="test_juridiq" style="padding:12px 18px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Testar conexão Juridiq</button>
-    <button type="submit" name="action" value="preview_juridiq" style="padding:12px 18px;border:0;border-radius:8px;background:#9a772f;color:#fff;cursor:pointer">Consultar 10 clientes</button>
-  </form>
-  <p style="margin-top:14px;font-size:14px">A chave permanece no servidor. Senhas e documentos não são importados.</p>
-  <?php if ($preview): ?>
-    <div style="overflow-x:auto;margin-top:20px"><table style="width:100%;border-collapse:collapse;text-align:left">
-      <thead><tr><th style="padding:10px">ID Juridiq</th><th style="padding:10px">Nome</th><th style="padding:10px">E-mail</th><th style="padding:10px">Telefone</th><th style="padding:10px">Importação</th></tr></thead>
-      <tbody><?php foreach ($preview as $p): ?><tr style="border-top:1px solid #ddd">
-        <td style="padding:10px"><?= juridiq_escape($p['id']) ?></td><td style="padding:10px"><?= juridiq_escape($p['name']) ?></td><td style="padding:10px"><?= juridiq_escape($p['email']) ?></td><td style="padding:10px"><?= juridiq_escape($p['phone']) ?></td>
-        <td style="padding:10px"><form method="post" onsubmit="return confirm('Importar este cliente para o Portal TSP? Confira se já não existe cadastro manual.');">
-          <input type="hidden" name="csrf" value="<?= juridiq_escape($csrf) ?>"><input type="hidden" name="juridiq_id" value="<?= juridiq_escape($p['id']) ?>">
-          <select name="client_type" required style="padding:8px"><option value="">PF ou PJ?</option><option value="PF">PF</option><option value="PJ">PJ</option></select>
-          <button type="submit" name="action" value="import_juridiq" style="padding:9px 12px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Importar</button>
-        </form></td>
-      </tr><?php endforeach; ?></tbody>
-    </table></div>
-  <?php endif; ?>
+    <h2>Juridiq</h2>
+    <p>Consulte pessoas e importe individualmente, após conferir os dados. Nenhuma movimentação ou processo será importado nesta etapa.</p>
+    <?php if ($result): ?>
+        <p role="status" style="padding:12px;border-radius:8px;background:<?= $result['ok'] ? '#e8f5ec' : '#fff0ed' ?>;color:#192b36"><?= juridiq_escape($result['message']) ?></p>
+    <?php endif; ?>
+    <form method="post" style="display:flex;gap:12px;flex-wrap:wrap">
+        <input type="hidden" name="csrf" value="<?= juridiq_escape($csrf) ?>">
+        <button type="submit" name="action" value="test_juridiq" style="padding:12px 18px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Testar conexão Juridiq</button>
+        <button type="submit" name="action" value="preview_juridiq" style="padding:12px 18px;border:0;border-radius:8px;background:#9a772f;color:#fff;cursor:pointer">Consultar 10 clientes</button>
+    </form>
+    <p style="margin-top:14px;font-size:14px">A chave permanece no servidor. Senhas e documentos não são importados.</p>
+    <?php if ($preview): ?>
+        <div style="overflow-x:auto;margin-top:20px">
+            <table style="width:100%;border-collapse:collapse;text-align:left">
+                <thead>
+                    <tr>
+                        <th style="padding:10px">ID Juridiq</th>
+                        <th style="padding:10px">Nome</th>
+                        <th style="padding:10px">E-mail</th>
+                        <th style="padding:10px">Telefone</th>
+                        <th style="padding:10px">Importação</th>
+                    </tr>
+                </thead>
+                <tbody><?php foreach ($preview as $p): ?><tr style="border-top:1px solid #ddd">
+                            <td style="padding:10px"><?= juridiq_escape($p['id']) ?></td>
+                            <td style="padding:10px"><?= juridiq_escape($p['name']) ?></td>
+                            <td style="padding:10px"><?= juridiq_escape($p['email']) ?></td>
+                            <td style="padding:10px"><?= juridiq_escape($p['phone']) ?></td>
+                            <td style="padding:10px">
+                                <form method="post" onsubmit="return confirm('Importar este cliente para o Portal TSP? Confira se já não existe cadastro manual.');">
+                                    <input type="hidden" name="csrf" value="<?= juridiq_escape($csrf) ?>"><input type="hidden" name="juridiq_id" value="<?= juridiq_escape($p['id']) ?>">
+                                    <select name="client_type" required style="padding:8px">
+                                        <option value="">PF ou PJ?</option>
+                                        <option value="PF">PF</option>
+                                        <option value="PJ">PJ</option>
+                                    </select>
+                                    <button type="submit" name="action" value="import_juridiq" style="padding:9px 12px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Importar</button>
+                                </form>
+                            </td>
+                        </tr><?php endforeach; ?></tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 </section>
 <?php portal_footer(); ?>

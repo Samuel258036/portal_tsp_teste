@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 $envPath = __DIR__ . '/../../.env';
@@ -9,10 +10,11 @@ if (!file_exists($envPath)) {
 }
 
 // Função personalizada para ler .env com suporte a caracteres especiais
-function loadEnv(string $filePath): array {
+function loadEnv(string $filePath): array
+{
     $env = [];
     $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    
+
     foreach ($lines as $line) {
         $line = trim($line);
         if ($line === '' || str_starts_with($line, '#')) {

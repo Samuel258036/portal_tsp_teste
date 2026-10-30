@@ -1,5 +1,38 @@
 <?php
-require_once __DIR__.'/auth.php';if(current_user()){header('Location: dashboard.php');exit;}$err='';
-if($_SERVER['REQUEST_METHOD']==='POST'){$email=strtolower(trim($_POST['email']??''));$s=$pdo->prepare("SELECT * FROM users WHERE email=? LIMIT 1");$s->execute([$email]);$u=$s->fetch();
-if($u&&((int)($u['active']??1)===1)&&password_verify((string)($_POST['password']??''),(string)$u['password_hash'])){$_SESSION['user']=['id'=>(int)$u['id'],'name'=>$u['name'],'email'=>$u['email'],'role'=>$u['role'],'client_id'=>$u['client_id']===null?null:(int)$u['client_id']];header('Location: dashboard.php');exit;}$err='E-mail ou senha inválidos.';}
-?><!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="assets/portal.css?v=4.2"><title>Portal TSP</title></head><body class="login"><section><span>PORTAL TSP</span><h1>Portal do Cliente</h1><p>Acesse seu ambiente TSP.</p><?php if($err):?><div class="flash error"><?=$err?></div><?php endif;?><form method="post"><label>E-mail<input type="email" name="email" required></label><label>Senha<input type="password" name="password" required></label><button>Entrar</button></form></section></body></html>
+require_once __DIR__ . '/auth.php';
+if (current_user()) {
+    header('Location: dashboard.php');
+    exit;
+}
+$err = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = strtolower(trim($_POST['email'] ?? ''));
+    $s = $pdo->prepare("SELECT * FROM users WHERE email=? LIMIT 1");
+    $s->execute([$email]);
+    $u = $s->fetch();
+    if ($u && ((int)($u['active'] ?? 1) === 1) && password_verify((string)($_POST['password'] ?? ''), (string)$u['password_hash'])) {
+        $_SESSION['user'] = ['id' => (int)$u['id'], 'name' => $u['name'], 'email' => $u['email'], 'role' => $u['role'], 'client_id' => $u['client_id'] === null ? null : (int)$u['client_id']];
+        header('Location: dashboard.php');
+        exit;
+    }
+    $err = 'E-mail ou senha inválidos.';
+}
+?>
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="assets/portal.css?v=4.2">
+    <title>Portal TSP</title>
+</head>
+
+<body class="login">
+    <section><span>PORTAL TSP</span>
+        <h1>Portal do Cliente</h1>
+        <p>Acesse seu ambiente TSP.</p><?php if ($err): ?><div class="flash error"><?= $err ?></div><?php endif; ?><form method="post"><label>E-mail<input type="email" name="email" required></label><label>Senha<input type="password" name="password" required></label><button>Entrar</button></form>
+    </section>
+</body>
+
+</html>
