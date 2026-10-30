@@ -131,6 +131,11 @@ Total de **14 tabelas** identificadas na base de dados:
 * **Dependências:** Provedor Anthropic (Claude API).
 * **Variáveis Requeridas:** `ANTHROPIC_API_KEY`.
 
+### 4. Módulo de API do JURIDIQ
+* **Papel:** Conexão com o sistema do Juridiq
+* **Dependências:** sistema do Juridiq.
+* **Variáveis Requeridas:** `JURIDIQ_API_KEY`.
+
 ---
 
 ## 5. Mapeamento de Variáveis de Ambiente (`.env`)
@@ -141,4 +146,5 @@ DATABASE_URL          # String de conexão com o banco MySQL
 PJE_OAB_NUMERO        # Número da inscrição OAB para raspagem
 PJE_OAB_UF            # Estado da federação da OAB (ex: SP)
 ANTHROPIC_API_KEY     # Chave de API para resumo automatizado via IA
+JURIDIQ_API_KEY       # Chave de API para o sistema do JURIDIQ
 ```
