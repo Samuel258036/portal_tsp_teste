@@ -1,0 +1,4 @@
+<?php require_once 'partials.php';allow(['admin','gestao','cliente']);header_page('Financeiro','fin');
+$payments=$_SESSION['payments'];if(role()==='cliente')$payments=array_values(array_filter($payments,fn($x)=>$x['client_id']==$_SESSION['user']['client_id']));?>
+<header class="pagehead"><div><span class="kicker">FINANCEIRO</span><h1>Financeiro</h1><p><?=role()==='cliente'?'Consulte parcelas e situação do contrato.':'Visão de cobranças e situação dos clientes.'?></p></div></header>
+<section class="card"><div class="table"><div class="tr th"><span>Descrição</span><span>Vencimento</span><span>Valor</span><span>Status</span></div><?php foreach($payments as $p):?><div class="tr"><span><b><?=e($p['desc'])?></b></span><span><?=e($p['due'])?></span><span>R$ <?=e($p['value'])?></span><span><i class="status"><?=e($p['status'])?></i></span></div><?php endforeach;?></div></section><?php footer_page();?>

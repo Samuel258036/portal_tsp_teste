@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+
+:root {
+  --bg: #EDF1F2;
+  --surface: #FFFFFF;
+  --ink: #13232B;
+  --muted: #586971;
+  --line: #D6DFE2;
+  --brand: #0F4C5C;
+  --brand-ink: #FFFFFF;
+  --brand-soft: #DCEBEE;
+  --ok: #1F6847;
+  --ok-bg: #DDF0E6;
+  --warn: #84550A;
+  --warn-bg: #FAEBC9;
+  --bad: #A0312A;
+  --bad-bg: #F8DFDB;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+}
+
+.font-serif-brand {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+/* Desfoque de bloqueio: aplicado no servidor (ver API), nunca só no CSS,
+   mas mantemos a classe para o efeito visual sobre o pouco que é enviado. */
+.conteudo-bloqueado {
+  filter: blur(6px);
+  opacity: .7;
+  pointer-events: none;
+  user-select: none;
+}

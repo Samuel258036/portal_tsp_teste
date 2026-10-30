@@ -1,0 +1,1 @@
+function filterRows(){let q=(document.getElementById('filter')?.value||'').toLowerCase();document.querySelectorAll('.searchable').forEach(x=>x.style.display=x.innerText.toLowerCase().includes(q)?'grid':'none');}

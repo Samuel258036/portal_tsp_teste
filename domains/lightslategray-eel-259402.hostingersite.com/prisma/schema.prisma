@@ -1,0 +1,171 @@
+// Schema do banco de dados da Área do Cliente TSP.
+// Pensado para o MySQL da Hostinger (banco dedicado, separado do site institucional).
+//
+// Para aplicar: configure DATABASE_URL no .env e rode "npm run db:push"
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------- Clientes e autenticação ----------
+
+model Cliente {
+  id            String    @id @default(cuid())
+  nome          String
+  cpf           String    @unique
+  email         String    @unique
+  senhaHash     String    // bcrypt — nunca salvar senha em texto puro
+  criadoEm      DateTime  @default(now())
+
+  processos     ProcessoCliente[]
+  parcelas      Parcela[]
+  chamados      Chamado[]
+  sessoes       Sessao[]
+
+  @@map("clientes")
+}
+
+// Sessões de login (permite "sair de todos os dispositivos", expirar acesso etc.)
+model Sessao {
+  id         String   @id @default(cuid())
+  clienteId  String
+  cliente    Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  criadaEm   DateTime @default(now())
+  expiraEm   DateTime
+
+  @@map("sessoes")
+}
+
+// Usuários internos do escritório (equipe TSP) que respondem chamados e revisam resumos de IA
+model Membro {
+  id         String   @id @default(cuid())
+  nome       String
+  email      String   @unique
+  senhaHash  String
+  papel      String   @default("equipe") // "equipe" | "admin"
+
+  mensagens  MensagemChamado[]
+  resumosRevisados ResumoIA[]
+
+  @@map("membros")
+}
+
+// ---------- Processos ----------
+
+model Processo {
+  id          String   @id @default(cuid())
+  numero      String   @unique // número CNJ, ex: 1023456-78.2025.8.26.0554
+  titulo      String
+  vara        String?
+  tribunal    String?  // sigla do tribunal (TJSP, TRT3...), usada no filtro do PJe
+  fases       Json     // array de strings com as fases do processo, ex: ["Petição inicial", "Citação", ...]
+  faseAtual   Int      @default(0)
+  status      String?  // texto curto, ex: "Aguardando audiência"
+  proximoPasso String?
+  segredoDeJustica Boolean @default(false)
+
+  clientes       ProcessoCliente[]
+  movimentacoes  Movimentacao[]
+  resumos        ResumoIA[]
+  chamados       Chamado[]
+
+  @@map("processos")
+}
+
+// Tabela de vínculo: um processo pode ter mais de um cliente, e um cliente mais de um processo
+model ProcessoCliente {
+  processoId String
+  clienteId  String
+  processo   Processo @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  cliente    Cliente  @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@id([processoId, clienteId])
+  @@map("processo_clientes")
+}
+
+// Movimentações/intimações cruas, vindas do PJe Comunica (ou lançadas manualmente pela equipe)
+model Movimentacao {
+  id              String    @id @default(cuid())
+  processoId      String
+  processo        Processo  @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  data            DateTime
+  tituloCurto     String    // título amigável, ex: "Audiência marcada"
+  textoOriginal   String    @db.Text // texto bruto do tribunal, já higienizado (sem tags HTML)
+  fonteOrigem     String    @default("manual") // "pje_comunica" | "manual"
+  idExternoPje    String?   @unique // id do item retornado pela API do PJe, evita duplicar
+  criadoEm        DateTime  @default(now())
+
+  @@index([processoId, data])
+  @@map("movimentacoes")
+}
+
+// Resumo em linguagem simples gerado pela IA para cada processo.
+// Fica pendente de revisão até um membro da equipe aprovar — só então aparece para o cliente.
+model ResumoIA {
+  id            String    @id @default(cuid())
+  processoId    String
+  processo      Processo  @relation(fields: [processoId], references: [id], onDelete: Cascade)
+  textoGerado   String    @db.Text
+  status        String    @default("pendente") // "pendente" | "aprovado" | "rejeitado"
+  revisadoPorId String?
+  revisadoPor   Membro?   @relation(fields: [revisadoPorId], references: [id])
+  revisadoEm    DateTime?
+  criadoEm      DateTime  @default(now())
+
+  @@map("resumos_ia")
+}
+
+// ---------- Financeiro ----------
+
+model Parcela {
+  id            String    @id @default(cuid())
+  clienteId     String
+  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  numero        Int       // 1, 2, 3...
+  valorCentavos Int
+  vencimento    DateTime
+  pagoEm        DateTime?
+  status        String    @default("aberta") // "aberta" | "paga" | "atrasada"
+  idPagamentoGateway String? // id da cobrança no Asaas/Iugu/etc, para o webhook localizar a parcela
+
+  @@index([clienteId, status])
+  @@map("parcelas")
+}
+
+// ---------- Chamados (tickets) ----------
+
+model Chamado {
+  id          String    @id @default(cuid())
+  clienteId   String
+  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  processoId  String?
+  processo    Processo? @relation(fields: [processoId], references: [id])
+  assunto     String
+  categoria   String
+  status      String    @default("recebido") // "recebido" | "em_andamento" | "respondido" | "concluido"
+  criadoEm    DateTime  @default(now())
+
+  mensagens   MensagemChamado[]
+
+  @@map("chamados")
+}
+
+model MensagemChamado {
+  id          String    @id @default(cuid())
+  chamadoId   String
+  chamado     Chamado   @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  autorTipo   String    // "cliente" | "equipe"
+  clienteId   String?   // preenchido quando autorTipo = "cliente" (via relação indireta no chamado)
+  membroId    String?
+  membro      Membro?   @relation(fields: [membroId], references: [id])
+  texto       String    @db.Text
+  criadaEm    DateTime  @default(now())
+
+  @@map("mensagens_chamado")
+}
