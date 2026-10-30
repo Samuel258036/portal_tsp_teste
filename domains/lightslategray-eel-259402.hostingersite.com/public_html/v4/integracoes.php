@@ -35,12 +35,32 @@ function juridiq_request(string $apiKey, int $limit): array {
     if (!is_array($data)) throw new RuntimeException('Resposta inesperada do Juridiq.');
     return $data;
 }
-function juridiq_key(): string {
-    $file = dirname(__DIR__, 2) . '/tsp-juridiq-secret.php';
-    if (!is_file($file)) return '';
-    $config = require $file;
-    return is_array($config) ? trim((string)($config['api_key'] ?? '')) : '';
+function loadEnv(string $filePath): array {
+    if (!is_file($filePath)) return [];
+    
+    $env = [];
+    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        
+        if (str_contains($line, '=')) {
+            [$key, $value] = explode('=', $line, 2);
+            $env[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
+        }
+    }
+    return $env;
 }
+
+function juridiq_key(): string {
+    $envPath = __DIR__ . '/../../.env'; // Ajuste para .env no ambiente final
+    
+    $config = loadEnv($envPath);
+    
+    return trim((string)($config['JURIDIQ_API_KEY'] ?? ''));
+}
+
 function juridiq_people(string $key, int $limit): array {
     $response = juridiq_request($key, $limit);
     $items = $response['data'] ?? null;

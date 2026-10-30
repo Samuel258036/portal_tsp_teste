@@ -1,0 +1,14 @@
+# Arquivos de ambiente e credenciais
+.env
+.env.local
+config.env.php
+
+# Logs e backups
+*.log
+*.sql
+*.rar
+*.zip
+
+# Dependências
+node_modules/
+vendor/
