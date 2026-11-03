@@ -1,4 +1,4 @@
-<?php require_once 'config.php';
+<?php require_once '/../config.php';
 function label_role($r)
 {
     return ['admin' => 'Admin', 'gestao' => 'Gestão TSP', 'adv' => 'Adv TSP', 'cliente' => 'Cliente'][$r] ?? $r;

@@ -16,7 +16,7 @@ function logged()
 function require_login()
 {
     if (!logged()) {
-        header('Location:index.php');
+        header('Location: ../index.php');
         exit;
     }
 }

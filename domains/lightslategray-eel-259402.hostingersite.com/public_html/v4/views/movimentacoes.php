@@ -3,7 +3,9 @@ require_once __DIR__ . '/auth.php';
 require_login();
 require_once __DIR__ . '/portal-layout.php';
 portal_header('Atualizações', 'movimentacoes');
-flash(); ?>
+if (function_exists('flash')) {
+    flash();
+} ?>
 <section class="panel"><span class="eyebrow">PORTAL TSP</span>
     <h2>Atualizações</h2>
     <p>Central de movimentações processuais. O módulo será conectado à tabela case_updates na próxima etapa.</p>

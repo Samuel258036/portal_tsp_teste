@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/v4/api/auth.php';
 if (current_user()) {
-    header('Location: dashboard.php');
+    header('Location: v4/views/dashboard.php');
     exit;
 }
 $err = '';
@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $u = $s->fetch();
     if ($u && ((int)($u['active'] ?? 1) === 1) && password_verify((string)($_POST['password'] ?? ''), (string)$u['password_hash'])) {
         $_SESSION['user'] = ['id' => (int)$u['id'], 'name' => $u['name'], 'email' => $u['email'], 'role' => $u['role'], 'client_id' => $u['client_id'] === null ? null : (int)$u['client_id']];
-        header('Location: dashboard.php');
+        header('Location: v4/views/dashboard.php');
         exit;
     }
     $err = 'E-mail ou senha inválidos.';

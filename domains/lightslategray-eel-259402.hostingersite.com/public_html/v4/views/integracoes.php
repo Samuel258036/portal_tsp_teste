@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/../api/auth.php';
 require_admin();
 require_once __DIR__ . '/portal-layout.php';
 
@@ -61,7 +61,7 @@ function loadEnv(string $filePath): array
 
 function juridiq_key(): string
 {
-    $envPath = __DIR__ . '/../../.env'; // Ajuste para .env no ambiente final
+    $envPath = __DIR__ . '/../../../.env'; // Ajuste para .env no ambiente final
 
     $config = loadEnv($envPath);
 

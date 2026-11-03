@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/../api/auth.php';
 require_login();
 require_once __DIR__ . '/portal-layout.php';
 function cq($pdo, $sql, $p = [])

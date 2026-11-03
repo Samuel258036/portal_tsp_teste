@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-$envPath = __DIR__ . '/../../.env';
+$envPath = __DIR__ . '/../.env';
 
 if (!file_exists($envPath)) {
     http_response_code(500);
@@ -10,24 +10,23 @@ if (!file_exists($envPath)) {
 }
 
 // Função personalizada para ler .env com suporte a caracteres especiais
-function loadEnv(string $filePath): array
-{
-    $env = [];
-    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+if (!function_exists('loadEnv')) {
+    function loadEnv(string $filePath): array {
+        $env = [];
+        if (!file_exists($filePath)) return $env;
 
-    foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#')) {
-            continue;
+        $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || str_starts_with($line, '#')) continue;
+
+            if (str_contains($line, '=')) {
+                [$key, $value] = explode('=', $line, 2);
+                $env[trim($key)] = trim($value, " \t\n\r\0\x0B\"'");
+            }
         }
-        if (str_contains($line, '=')) {
-            [$key, $value] = explode('=', $line, 2);
-            $key   = trim($key);
-            $value = trim($value, " \t\n\r\0\x0B\"'"); // Remove espaços e aspas externas
-            $env[$key] = $value;
-        }
+        return $env;
     }
-    return $env;
 }
 
 $env = loadEnv($envPath);

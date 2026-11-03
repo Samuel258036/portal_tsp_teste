@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/../../../config/database.php';
 function current_user(): ?array
 {
     return $_SESSION['user'] ?? null;
@@ -10,7 +10,7 @@ function current_user(): ?array
 function require_login(): void
 {
     if (!current_user()) {
-        header('Location: index.php');
+        header('Location: ../../index.php');
         exit;
     }
 }
