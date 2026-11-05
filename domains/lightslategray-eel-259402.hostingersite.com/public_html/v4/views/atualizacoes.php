@@ -102,54 +102,87 @@ $flash = flash_get();
 ?>
 <section class="panel"><span>PORTAL TSP</span>
     <h2>Atualizações processuais</h2>
-    <p><?= $admin ? 'Registre, revise e publique as movimentações de cada processo.' : 'Acompanhe as movimentações e orientações publicadas pela TSP.' ?></p>
+    <p><?= $admin ? 'Registre, revise e publique as movimentações de cada processo.' : 'Acompanhe as movimentações e orientações publicadas pela TSP.' ?>
+    </p>
 </section>
 <?php if ($flash): ?><section class="panel" style="margin-top:18px">
-        <p role="status" style="color:<?= ($flash['type'] ?? '') === 'ok' ? '#146c43' : '#9f2525' ?>"><?= upd_h($flash['message'] ?? '') ?></p>
-    </section><?php endif; ?>
+    <p role="status" style="color:<?= ($flash['type'] ?? '') === 'ok' ? '#146c43' : '#9f2525' ?>">
+        <?= upd_h($flash['message'] ?? '') ?></p>
+</section><?php endif; ?>
 <?php if ($error): ?><section class="panel" style="margin-top:18px">
-        <p role="alert"><?= upd_h($error) ?></p>
-    </section><?php endif; ?>
+    <p role="alert"><?= upd_h($error) ?></p>
+</section><?php endif; ?>
 <?php if ($admin && !$error): ?>
-    <section class="panel" style="margin-top:20px">
-        <h2>Nova atualização</h2>
-        <p>O rascunho não aparece para o cliente. A publicação exige uma mensagem destinada ao cliente.</p>
-        <form method="post" style="display:grid;gap:14px;max-width:900px">
-            <input type="hidden" name="csrf" value="<?= upd_h($csrf) ?>"><input type="hidden" name="action" value="create">
-            <label>Processo *<select name="case_id" required style="display:block;width:100%;padding:12px;margin-top:5px">
-                    <option value="">Selecione o processo</option><?php foreach ($cases as $case): ?><option value="<?= (int)$case['id'] ?>"><?= upd_h($case['case_number'] . ' — ' . $case['client_name'] . ' — ' . $case['title']) ?></option><?php endforeach; ?>
-                </select></label>
-            <label>Título *<input name="title" maxlength="255" required style="display:block;width:100%;padding:12px;margin-top:5px"></label>
-            <label>Data da movimentação (opcional)<input name="event_date" type="date" style="display:block;padding:12px;margin-top:5px"></label>
-            <label>Mensagem para o cliente<textarea name="client_message" rows="4" maxlength="10000" style="display:block;width:100%;padding:12px;margin-top:5px"></textarea></label>
-            <label>Nota interna — nunca exibida ao cliente<textarea name="internal_note" rows="3" maxlength="10000" style="display:block;width:100%;padding:12px;margin-top:5px"></textarea></label>
-            <label><input type="checkbox" name="client_action_required" value="1"> Cliente precisa realizar uma ação</label>
-            <div style="display:flex;gap:12px;flex-wrap:wrap"><button name="mode" value="draft" type="submit" style="padding:12px 18px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Salvar rascunho</button><button name="mode" value="publish" type="submit" style="padding:12px 18px;border:0;border-radius:8px;background:#9a772f;color:#fff;cursor:pointer">Publicar para o cliente</button></div>
-        </form>
-    </section>
+<section class="panel" style="margin-top:20px">
+    <h2>Nova atualização</h2>
+    <p>O rascunho não aparece para o cliente. A publicação exige uma mensagem destinada ao cliente.</p>
+    <form method="post" style="display:grid;gap:14px;max-width:900px">
+        <input type="hidden" name="csrf" value="<?= upd_h($csrf) ?>"><input type="hidden" name="action" value="create">
+        <label>Processo *<select name="case_id" required style="display:block;width:100%;padding:12px;margin-top:5px">
+                <option value="">Selecione o processo</option><?php foreach ($cases as $case): ?><option
+                    value="<?= (int)$case['id'] ?>">
+                    <?= upd_h($case['case_number'] . ' — ' . $case['client_name'] . ' — ' . $case['title']) ?></option>
+                <?php endforeach; ?>
+            </select></label>
+        <label>Título *<input name="title" maxlength="255" required
+                style="display:block;width:100%;padding:12px;margin-top:5px"></label>
+        <label>Data da movimentação (opcional)<input name="event_date" type="date"
+                style="display:block;padding:12px;margin-top:5px"></label>
+        <label>Mensagem para o cliente<textarea name="client_message" rows="4" maxlength="10000"
+                style="display:block;width:100%;padding:12px;margin-top:5px"></textarea></label>
+        <label>Nota interna — nunca exibida ao cliente<textarea name="internal_note" rows="3" maxlength="10000"
+                style="display:block;width:100%;padding:12px;margin-top:5px"></textarea></label>
+        <label><input type="checkbox" name="client_action_required" value="1"> Cliente precisa realizar uma ação</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap"><button name="mode" value="draft" type="submit"
+                style="padding:12px 18px;border:0;border-radius:8px;background:#183049;color:#fff;cursor:pointer">Salvar
+                rascunho</button><button name="mode" value="publish" type="submit"
+                style="padding:12px 18px;border:0;border-radius:8px;background:#9a772f;color:#fff;cursor:pointer">Publicar
+                para o cliente</button></div>
+    </form>
+</section>
 <?php endif; ?>
 <section class="panel" style="margin-top:20px">
     <h2><?= $admin ? 'Histórico e revisão' : 'Minhas atualizações' ?></h2>
-    <?php if (!$updates): ?><p><?= $error ? 'Indisponível no momento.' : 'Nenhuma atualização disponível no momento.' ?></p><?php else: ?>
-        <div style="display:grid;gap:14px;margin-top:18px">
-            <?php foreach ($updates as $item): ?>
-                <article style="padding:18px;border:1px solid #e4dfd6;border-radius:12px">
-                    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
-                        <div><strong><?= upd_h($item['title']) ?></strong>
-                            <p style="margin:5px 0"><?= upd_h($item['case_number'] . ' — ' . $item['case_title']) ?><?= $admin ? ' · ' . upd_h($item['client_name']) : '' ?></p>
-                        </div><small><?= upd_h(upd_date($item['event_date'] ?: ($item['published_at'] ?? $item['created_at'] ?? null))) ?></small>
-                    </div>
-                    <?php if ($admin): ?><p><strong>Situação:</strong> <?= upd_h($item['status']) ?> · <strong>Origem:</strong> <?= upd_h($item['source'] ?: $item['update_type']) ?> · <strong>Visível:</strong> <?= (int)$item['visible_to_client'] ? 'Sim' : 'Não' ?></p><?php endif; ?>
-                    <?php if (trim((string)($item['client_message'] ?? '')) !== ''): ?><p style="white-space:pre-wrap"><?= upd_h($item['client_message']) ?></p><?php endif; ?>
-                    <?php if (!empty($item['client_action_required'])): ?><p style="color:#9a772f"><strong>Ação necessária do cliente</strong></p><?php endif; ?>
-                    <?php if ($admin): ?>
-                        <?php if (trim((string)($item['internal_note'] ?? '')) !== ''): ?><p style="padding:12px;background:#f4f1ea;border-radius:8px;white-space:pre-wrap"><strong>Nota interna:</strong> <?= upd_h($item['internal_note']) ?></p><?php endif; ?>
-                        <?php if (in_array($item['status'], ['draft', 'pending_review'], true) && trim((string)($item['client_message'] ?? '')) !== ''): ?><form method="post" style="display:inline-block;margin-right:8px"><input type="hidden" name="csrf" value="<?= upd_h($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="update_id" value="<?= (int)$item['id'] ?>"><button type="submit" style="padding:9px 14px;border:0;border-radius:7px;background:#9a772f;color:#fff;cursor:pointer">Aprovar e publicar</button></form><?php endif; ?>
-                        <?php if ($item['status'] === 'published' && (int)$item['visible_to_client'] === 1): ?><form method="post" style="display:inline-block"><input type="hidden" name="csrf" value="<?= upd_h($csrf) ?>"><input type="hidden" name="action" value="hide"><input type="hidden" name="update_id" value="<?= (int)$item['id'] ?>"><button type="submit" style="padding:9px 14px;border:1px solid #ddd;border-radius:7px;background:white;cursor:pointer">Retirar publicação</button></form><?php endif; ?>
-                    <?php endif; ?>
-                </article>
-            <?php endforeach; ?>
-        </div>
+    <?php if (!$updates): ?><p><?= $error ? 'Indisponível no momento.' : 'Nenhuma atualização disponível no momento.' ?>
+    </p><?php else: ?>
+    <div style="display:grid;gap:14px;margin-top:18px">
+        <?php foreach ($updates as $item): ?>
+        <article style="padding:18px;border:1px solid #e4dfd6;border-radius:12px">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div><strong><?= upd_h($item['title']) ?></strong>
+                    <p style="margin:5px 0">
+                        <?= upd_h($item['case_number'] . ' — ' . $item['case_title']) ?><?= $admin ? ' · ' . upd_h($item['client_name']) : '' ?>
+                    </p>
+                </div>
+                <small><?= upd_h(upd_date($item['event_date'] ?: ($item['published_at'] ?? $item['created_at'] ?? null))) ?></small>
+            </div>
+            <?php if ($admin): ?><p><strong>Situação:</strong> <?= upd_h($item['status']) ?> · <strong>Origem:</strong>
+                <?= upd_h($item['source'] ?: $item['update_type']) ?> · <strong>Visível:</strong>
+                <?= (int)$item['visible_to_client'] ? 'Sim' : 'Não' ?></p><?php endif; ?>
+            <?php if (trim((string)($item['client_message'] ?? '')) !== ''): ?><p style="white-space:pre-wrap">
+                <?= upd_h($item['client_message']) ?></p><?php endif; ?>
+            <?php if (!empty($item['client_action_required'])): ?><p style="color:#9a772f"><strong>Ação necessária do
+                    cliente</strong></p><?php endif; ?>
+            <?php if ($admin): ?>
+            <?php if (trim((string)($item['internal_note'] ?? '')) !== ''): ?><p
+                style="padding:12px;background:#f4f1ea;border-radius:8px;white-space:pre-wrap"><strong>Nota
+                    interna:</strong> <?= upd_h($item['internal_note']) ?></p><?php endif; ?>
+            <?php if (in_array($item['status'], ['draft', 'pending_review'], true) && trim((string)($item['client_message'] ?? '')) !== ''): ?>
+            <form method="post" style="display:inline-block;margin-right:8px"><input type="hidden" name="csrf"
+                    value="<?= upd_h($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden"
+                    name="update_id" value="<?= (int)$item['id'] ?>"><button type="submit"
+                    style="padding:9px 14px;border:0;border-radius:7px;background:#9a772f;color:#fff;cursor:pointer">Aprovar
+                    e publicar</button></form><?php endif; ?>
+            <?php if ($item['status'] === 'published' && (int)$item['visible_to_client'] === 1): ?><form method="post"
+                style="display:inline-block"><input type="hidden" name="csrf" value="<?= upd_h($csrf) ?>"><input
+                    type="hidden" name="action" value="hide"><input type="hidden" name="update_id"
+                    value="<?= (int)$item['id'] ?>"><button type="submit"
+                    style="padding:9px 14px;border:1px solid #ddd;border-radius:7px;background:white;cursor:pointer">Retirar
+                    publicação</button></form><?php endif; ?>
+            <?php endif; ?>
+        </article>
+        <?php endforeach; ?>
+    </div>
     <?php endif; ?>
 </section>
 <?php portal_footer(); ?>
