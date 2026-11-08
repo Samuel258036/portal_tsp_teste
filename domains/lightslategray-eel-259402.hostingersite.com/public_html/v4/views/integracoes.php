@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../api/auth.php';
 require_admin();
-require_once __DIR__ . '/../api/integracoes-db.php';
+require_once __DIR__ . '/../api/integracoes-controller.php';
 require_once __DIR__ . '/portal-layout.php';
 portal_header('Integrações', 'integracoes');
 ?>

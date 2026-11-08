@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/v4/api/auth.php';
+require_once __DIR__ . '/v4/views/portal-layout.php';
 if (current_user()) {
     header('Location: v4/views/dashboard.php');
     exit;
