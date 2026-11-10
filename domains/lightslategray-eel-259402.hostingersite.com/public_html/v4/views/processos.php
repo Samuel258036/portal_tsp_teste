@@ -75,9 +75,26 @@ try {
     if ($admin) {
         $clients = $pdo->query('SELECT id, name FROM clients WHERE active = 1 ORDER BY name')->fetchAll();
         $cases = $pdo->query('SELECT ca.id, ca.client_id, ca.case_number, ca.title, ca.legal_area, ca.court, ca.status, ca.summary, ca.next_step, ca.next_step_date, ca.created_at, cl.name AS client_name FROM cases ca INNER JOIN clients cl ON cl.id = ca.client_id WHERE ca.active = 1 ORDER BY ca.created_at DESC, ca.id DESC LIMIT 200')->fetchAll();
-    } elseif ($clientId > 0) {
-        $stmt = $pdo->prepare('SELECT ca.id, ca.client_id, ca.case_number, ca.title, ca.legal_area, ca.court, ca.status, ca.summary, ca.next_step, ca.next_step_date, ca.created_at FROM cases ca INNER JOIN clients cl ON cl.id = ca.client_id WHERE ca.active = 1 AND ca.client_id = ? AND cl.active = 1 ORDER BY ca.created_at DESC, ca.id DESC LIMIT 200');
-        $stmt->execute([$clientId]);
+    } else {
+        // Se não for admin, carrega processos onde o utilizador é o TITULAR ou TERCEIRO AUTORIZADO
+        $userId = (int)$user['id'];
+        
+        $sql = "SELECT ca.id, ca.client_id, ca.case_number, ca.title, ca.legal_area, ca.court, ca.status, ca.summary, ca.next_step, ca.next_step_date, ca.created_at 
+                FROM cases ca 
+                INNER JOIN clients cl ON cl.id = ca.client_id 
+                WHERE ca.active = 1 
+                AND cl.active = 1 
+                AND (
+                    ca.client_id = :client_id 
+                    OR ca.id IN (SELECT cp.case_id FROM case_permissions cp WHERE cp.user_id = :user_id AND cp.status = 'active')
+                ) 
+                ORDER BY ca.created_at DESC, ca.id DESC LIMIT 200";
+                
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':client_id' => $clientId,
+            ':user_id'   => $userId
+        ]);
         $cases = $stmt->fetchAll();
     }
 } catch (Throwable $e) {

@@ -128,17 +128,80 @@ $updates = [];
 $error = null;
 try {
     if ($admin) {
+        // --- 1. LÓGICA DO ADMINISTRADOR ---
         $cases = $pdo->query('SELECT c.id, c.case_number, c.title, c.is_confidential, cl.name AS client_name FROM cases c INNER JOIN clients cl ON cl.id = c.client_id WHERE c.active = 1 ORDER BY c.created_at DESC LIMIT 500')->fetchAll(PDO::FETCH_ASSOC);
         
-        $updates = $pdo->query('SELECT u.id, u.case_id, u.title, u.client_message, u.internal_note, u.update_type, u.status, u.source, u.visible_to_client, u.client_action_required, u.event_date, u.published_at, u.created_at, u.approved_by_user_id, c.case_number, c.title AS case_title, c.is_confidential, cl.name AS client_name, usr.name AS approver_name 
+        $searchTerm = trim((string)($_GET['search'] ?? ''));
+        $searchSql = "";
+        $params = [];
+        
+        if ($searchTerm !== '') {
+            $searchSql = " AND (c.case_number LIKE ? OR c.title LIKE ?) ";
+            $params[] = '%' . $searchTerm . '%';
+            $params[] = '%' . $searchTerm . '%';
+        }
+        
+        $sql = "SELECT u.id, u.case_id, u.title, u.client_message, u.internal_note, u.update_type, u.status, u.source, u.visible_to_client, u.client_action_required, u.event_date, u.published_at, u.created_at, u.approved_by_user_id, c.case_number, c.title AS case_title, c.is_confidential, cl.name AS client_name, usr.name AS approver_name 
             FROM case_updates u 
             INNER JOIN cases c ON c.id = u.case_id 
             INNER JOIN clients cl ON cl.id = c.client_id 
             LEFT JOIN users usr ON usr.id = u.approved_by_user_id
-            ORDER BY FIELD(u.status, "pending_review", "draft", "published", "rejected"), COALESCE(u.event_date, u.created_at) DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
-    } elseif ($clientId > 0) {
-        $stmt = $pdo->prepare("SELECT u.id, u.title, u.client_message, u.client_action_required, u.event_date, u.published_at, c.case_number, c.title AS case_title FROM case_updates u INNER JOIN cases c ON c.id = u.case_id WHERE c.client_id = ? AND c.active = 1 AND (c.is_confidential = 0 OR c.is_confidential IS NULL) AND u.status = 'published' AND u.visible_to_client = 1 AND u.published_at IS NOT NULL ORDER BY COALESCE(u.event_date, u.published_at) DESC, u.id DESC LIMIT 200");
-        $stmt->execute([$clientId]);
+            WHERE 1=1 {$searchSql}
+            ORDER BY FIELD(u.status, 'pending_review', 'draft', 'published', 'rejected'), COALESCE(u.event_date, u.created_at) DESC 
+            LIMIT 200";
+            
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $updates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    } else {
+        // --- 2. LÓGICA DO CLIENTE / REPRESENTANTE (TERCEIRO) ---
+        require_once __DIR__ . '/../api/access_control.php';
+        
+        $queryData = get_authorized_cases_query($pdo, $userId);
+        
+        $filterSql = "";
+        $filterCaseId = filter_input(INPUT_GET, 'case_id', FILTER_VALIDATE_INT);
+        
+        if ($filterCaseId) {
+            $filterSql = " AND c.id = :filter_case_id ";
+            $queryData['params'][':filter_case_id'] = $filterCaseId;
+        }
+        
+        // Carrega os processos permitidos para desenhar as abas do cliente
+        $userCases = [];
+        if ($clientId > 0 || $userId > 0) {
+            $casesSql = "
+                SELECT c.id, c.case_number, c.title 
+                FROM cases c 
+                WHERE {$queryData['where']} 
+                  AND c.active = 1 
+                ORDER BY c.created_at DESC
+            ";
+            $stmtCases = $pdo->prepare($casesSql);
+            // Executamos a listagem de abas apenas com os parâmetros de autorização originais (sem o filter_case_id para não afetar as abas)
+            $authOnlyParams = array_diff_key($queryData['params'], [':filter_case_id' => 1]);
+            $stmtCases->execute($authOnlyParams);
+            $userCases = $stmtCases->fetchAll(PDO::FETCH_ASSOC);
+        }
+        
+        // Query de atualizações para o cliente/terceiro
+        $sql = "
+            SELECT u.id, u.title, u.client_message, u.client_action_required, u.event_date, u.published_at, c.case_number, c.title AS case_title 
+            FROM case_updates u 
+            INNER JOIN cases c ON c.id = u.case_id 
+            WHERE {$queryData['where']} 
+              {$filterSql} 
+              AND (c.is_confidential = 0 OR c.is_confidential IS NULL) 
+              AND u.status = 'published' 
+              AND u.visible_to_client = 1 
+              AND u.published_at IS NOT NULL 
+            ORDER BY COALESCE(u.event_date, u.published_at) DESC, u.id DESC 
+            LIMIT 200
+        ";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($queryData['params']);
         $updates = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (Throwable $e) {

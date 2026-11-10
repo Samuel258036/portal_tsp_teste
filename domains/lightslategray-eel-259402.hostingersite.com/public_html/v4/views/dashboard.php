@@ -1,7 +1,15 @@
 <?php
 require_once __DIR__ . '/../api/auth.php';
+require_once __DIR__ . '/../api/access_control.php'; // (ajuste o caminho se necessário)
 require_login();
 require_once __DIR__ . '/portal-layout.php';
+
+$user = current_user();
+$userId = (int)($user['id'] ?? 0);
+
+$queryData = get_authorized_cases_query($pdo, $userId);
+$sql = "SELECT COUNT(*) FROM cases c WHERE {$queryData['where']} AND c.active = 1";
+
 function cq($pdo, $sql, $p = [])
 {
     $s = $pdo->prepare($sql);
@@ -16,7 +24,7 @@ if (is_admin()) {
 } else {
     $id = (int)(current_user()['client_id'] ?? 0);
     $a = 1;
-    $b = cq($pdo, "SELECT COUNT(*) FROM cases WHERE client_id=?", [$id]);
+    $b = cq($pdo, $sql, $queryData['params']);
     $c = 0;
     $d = cq($pdo, "SELECT COUNT(*) FROM tickets WHERE client_id=?", [$id]);
 }

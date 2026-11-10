@@ -6,6 +6,9 @@ require_login();
 require_once __DIR__ . '/../api/atualizacoes-controller.php';
 require_once __DIR__ . '/portal-layout.php';
 portal_header('Atualizações', 'atualizacoes');
+if ($admin) {
+    $userCases = [];
+}
 ?>
 
 <section class="panel"><span>PORTAL TSP</span>
@@ -62,6 +65,48 @@ portal_header('Atualizações', 'atualizacoes');
 <section class="panel" style="margin-top:20px">
     <h2><?= $admin ? 'Fila de Revisão e Histórico' : 'Minhas atualizações' ?></h2>
     <?php if (!$updates): ?><p>Nenhuma atualização disponível no momento.</p><?php else: ?>
+    <?php if ($admin): ?>
+    <!-- 1. VISÃO DO ADMIN: Barra de Pesquisa escalável -->
+    <form method="GET" action="atualizacoes.php"
+        style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
+        <div style="flex-grow: 1; max-width: 400px;">
+            <input type="text" name="search" placeholder="Pesquisar por número do processo ou título..."
+                value="<?= htmlspecialchars($_GET['search'] ?? '') ?>"
+                style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+        </div>
+        <button type="submit"
+            style="padding: 10px 18px; background: #183049; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+            Pesquisar
+        </button>
+        <?php if (!empty($_GET['search'])): ?>
+        <a href="atualizacoes.php"
+            style="padding: 10px 14px; background: #e2e8f0; color: #334155; text-decoration: none; border-radius: 6px; font-size: 14px;">Limpar</a>
+        <?php endif; ?>
+    </form>
+
+    <?php else: ?>
+    <!-- 2. VISÃO DO CLIENTE / TERCEIRO: Abas limpas e rápidas -->
+    <?php if (!empty($userCases) && is_array($userCases)): ?>
+    <div class="case-tabs"
+        style="display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;">
+        <a href="atualizacoes.php"
+            style="padding: 8px 16px; border-radius: 6px; background: <?= empty($_GET['case_id']) ? '#183049' : '#e2e8f0' ?>; color: <?= empty($_GET['case_id']) ? '#fff' : '#334155' ?>; text-decoration: none; font-weight: bold; font-size: 13px;">
+            Todos os Processos
+        </a>
+
+        <?php foreach ($userCases as $c): 
+                $isActive = (isset($_GET['case_id']) && (int)$_GET['case_id'] === (int)$c['id']);
+            ?>
+        <a href="atualizacoes.php?case_id=<?= (int)$c['id'] ?>"
+            style="padding: 8px 16px; border-radius: 6px; background: <?= $isActive ? '#183049' : '#e2e8f0' ?>; color: <?= $isActive ? '#fff' : '#334155' ?>; text-decoration: none; font-size: 13px; white-space: nowrap;">
+            #<?= htmlspecialchars($c['case_number']) ?>
+        </a>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+    <?php endif; ?>
+
+    </div>
     <div style="display:grid;gap:14px;margin-top:18px">
         <?php foreach ($updates as $item): ?>
         <article
