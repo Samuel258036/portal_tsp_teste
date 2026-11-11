@@ -6,6 +6,9 @@ require_once __DIR__ . '/../api/case_access_backend.php';
 require_login();
 require_once __DIR__ . '/portal-layout.php';
 
+// Apenas Administradores e Gestão acedem a estas configurações
+require_role(['admin', 'gestao']);
+
 // ... Renderize a tabela com $meusProcessos ...
 portal_header('Acessos a Processos', 'case_access'); ?><section class="panel"><span>PORTAL TSP</span>
     <h2>Gestão de Acessos e Representantes Autorizados</h2>

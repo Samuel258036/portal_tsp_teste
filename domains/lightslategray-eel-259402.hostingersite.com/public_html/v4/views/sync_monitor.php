@@ -2,7 +2,10 @@
 require_once __DIR__ . '/../api/sync_monitor.php';
 require_admin();
 require_once __DIR__.'/portal-layout.php';
-portal_header('Monitoramento de Integrações', 'monitoramento'); ?>
+portal_header('Monitoramento de Integrações', 'monitoramento');
+
+require_role(['admin', 'gestao']);
+?>
 
 <section class="panel"><span>PORTAL TSP</span>
     <h2>Monitoramento e Sincronização Automática</h2>

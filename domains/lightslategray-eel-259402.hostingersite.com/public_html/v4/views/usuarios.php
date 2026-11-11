@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../api/auth.php';
-require_admin();
 require_once __DIR__.'/portal-layout.php';
+
+require_role(['admin', 'gestao']);
 
 if($_SERVER['REQUEST_METHOD']==='POST'){$n=trim($_POST['name']??'');$email=strtolower(trim($_POST['email']??''));$pw=(string)($_POST['password']??'');$role=($_POST['role']??'client')==='admin'?'admin':'client';$cid=$role==='admin'?null:(int)($_POST['client_id']??0);
 if(!$n||!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($pw)<8||($role==='client'&&!$cid))flash_set('error','Revise os campos e use senha com pelo menos 8 caracteres.');

@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/../api/auth.php';
-require_admin();
 require_once __DIR__ . '/../api/integracoes-controller.php';
 require_once __DIR__ . '/portal-layout.php';
 portal_header('Integrações', 'integracoes');
+
+
+require_role(['admin', 'gestao']);
 ?>
 <section class="panel"><span>PORTAL TSP</span>
     <h2>Integrações</h2>
