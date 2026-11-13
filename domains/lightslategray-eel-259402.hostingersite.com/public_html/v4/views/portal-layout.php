@@ -19,7 +19,7 @@ function portal_header(string $title, string $active = ''): void
         default   => strtoupper((string)$role)
     };
 
-    // Construção Dinâmica do Menu (Simplificado para 1 única linha do tempo)
+    // Construção Dinâmica do Menu
     $items = [];
     $items['dashboard'] = ['dashboard.php', 'Visão geral'];
 
@@ -29,7 +29,11 @@ function portal_header(string $title, string $active = ''): void
     }
 
     $items['processos']    = ['processos.php', 'Processos'];
-    $items['atualizacoes'] = ['atualizacoes.php', 'Atualizações']; // Módulo Único
+    $items['atualizacoes'] = ['atualizacoes.php', 'Atualizações'];
+    
+    // --- NOVO ITEM DE DOCUMENTOS (Visível para todos os perfis) ---
+    $items['documentos']   = ['documentos.php', 'Documentos'];
+    
     $items['financeiro']   = ['financeiro.php', 'Financeiro'];
 
     if (is_admin_or_gestao()) {
