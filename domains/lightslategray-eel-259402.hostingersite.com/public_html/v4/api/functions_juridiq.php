@@ -29,7 +29,7 @@ if (!function_exists('juridiq_request')) {
                 'Accept: application/json',
                 'User-Agent: TSP-Portal/4.0'
             ],
-            CURLOPT_TIMEOUT        => $timeoutSeconds,
+            CURLOPT_TIMEOUT        => $timeoutSeconds, // Corrigido para segundos
             CURLOPT_CONNECTTIMEOUT => 30,
             CURLOPT_SSL_VERIFYPEER => true
         ]);
@@ -38,15 +38,16 @@ if (!function_exists('juridiq_request')) {
         $httpCode     = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlErrno    = curl_errno($ch);
         $curlError    = curl_error($ch);
-        // curl_close($ch);
+        curl_close($ch);
 
         if ($responseBody === false) {
             if ($curlErrno === CURLE_OPERATION_TIMEDOUT) {
                 error_log("Juridiq Timeout [{$timeoutSeconds}s] na URL: {$url}");
-                return [];
+                // Lança a exceção para que o script chamador capture no try/catch e grave em sync_logs
+                throw new RuntimeException("Tempo limite esgotado ao conectar com a API Juridiq (Timeout {$timeoutSeconds}s).");
             }
             error_log("Juridiq cURL Error [{$curlErrno}]: {$curlError} - URL: {$url}");
-            throw new RuntimeException('Falha de comunicação com o servidor do Juridiq.');
+            throw new RuntimeException("Falha de comunicação com o servidor do Juridiq: " . ($curlError ?: 'Erro cURL'));
         }
 
         $data = json_decode((string)$responseBody, true);

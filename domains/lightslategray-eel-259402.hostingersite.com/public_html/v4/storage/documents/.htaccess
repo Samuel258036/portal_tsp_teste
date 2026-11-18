@@ -1,0 +1,2 @@
+# Impede o acesso direto a qualquer arquivo desta pasta via HTTP/Apache
+Require all denied
